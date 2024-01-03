@@ -1,0 +1,23 @@
+import numpy as np
+from scipy.optimize import linprog
+sizes = [33, 30, 26, 24, 19, 18, 17]
+demand = [400, 300, 500, 700, 200, 400, 200]
+variable_cost = sizes
+fixed_cost = 1000
+num_boxes = len(sizes)
+C = np.zeros((num_boxes, num_boxes))
+
+for i in range(num_boxes):
+    for j in range(num_boxes):
+        if i != j:
+            # Cost includes variable cost, fixed cost, and cost of satisfying remaining demand
+            C[i][j] = variable_cost[j] + fixed_cost + sum(variable_cost[k] for k in range(j + 1, num_boxes)) * (demand[j] / sum(demand))
+c_flat = C.flatten()
+c = c_flat
+A_eq = np.ones((num_boxes, num_boxes)).flatten()
+b_eq = demand
+bounds = [(0, None) for _ in range(num_boxes ** 2)]
+result = linprog(c, A_eq=A_eq, b_eq=b_eq, bounds=bounds, method='highs')
+solution_matrix = np.array(result.x).reshape((num_boxes, num_boxes))
+print("Optimal Solution:")
+print(solution_matrix)
